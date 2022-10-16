@@ -64,12 +64,12 @@ def main():
 				
 			except NoSocketAvailableError:
 			
-				print("No socket available")
 				clientMQTT = mqtt.Client(mqtt_inverter)
 				clientMQTT.username_pw_set(mqtt_user, mqtt_pw)
 				clientMQTT.connect(mqtt_srv, mqtt_port)
-				offline = json.dumps({"status": "new"})
-				clientMQTT.publish("deye/inverter/"+mqtt_inverter,offline,qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","offline",qos=1)
+				
+				print("No socket available")
 				sleep(1)
 				clientMQTT.disconnect()
 
