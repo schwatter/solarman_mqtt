@@ -3,7 +3,7 @@
 """                                     schwatter                                     """
 
 
-from pysolarmanv5 import PySolarmanV5, V5FrameError, NoSocketAvailableError
+from pysolarmanv5 import PySolarmanV5
 import paho.mqtt.client as mqtt
 from time import sleep
 
@@ -62,14 +62,15 @@ def main():
 			sleep(1)
 			clientMQTT.disconnect()
 			
-		except NoSocketAvailableError:
+		except Exception as e:
 			
 			clientMQTT = mqtt.Client(mqtt_inverter)
 			clientMQTT.username_pw_set(mqtt_user, mqtt_pw)
 			clientMQTT.connect(mqtt_srv, mqtt_port)
 			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","offline",qos=1)
+			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Error/", str(e),qos=1)
 			
-			print("No socket available")
+			print(e)
 			sleep(1)
 			clientMQTT.disconnect()
 
