@@ -15,7 +15,7 @@ def main():
 	inverterport = 8899 # standardport
 	mqtt_inverter_name = ["Deye1600_001", "Deye1600_002", "Deye1600_003"] # change if you want other friendly names
 	mqtt_user = "your_user" # mqtt_server username
-	mqtt_pw = "your_username" # mqtt_server password
+	mqtt_pw = "your_password" # mqtt_server password
 	mqtt_srv = "your_ip" # mqtt_server ip
 	mqtt_port = 1883 # mqtt_server port
 
