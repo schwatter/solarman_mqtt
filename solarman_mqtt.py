@@ -31,35 +31,39 @@ def main():
 			# https://onedrive.live.com/view.aspx?resid=16A457D539B343A2!3421&ithint=file%2cxlsx&authkey=!ACea2L7tVWRMVaw
 			# thx to Triple S from https://www.photovoltaikforum.com/
 			
-			Current_power = modbus.read_holding_registers(0x56, 0x01)
-			Yield_today = modbus.read_holding_registers(0x3C, 0x01)
-			Total_yield = modbus.read_holding_registers(0x3F, 0x01)
-			Temp = modbus.read_holding_registers(0x5A, 0x01)
-			DC_Voltage_PV1 = modbus.read_holding_registers(0x6D, 0x01)
+			Temp = get_div_100(modbus.read_holding_registers(0x5A, 0x01))
+			Current_power = get_div_10(modbus.read_holding_registers(0x56, 0x01))
+			Yield_today = get_div_10(modbus.read_holding_registers(0x3C, 0x01))
+			Total_yield = get_div_10(modbus.read_holding_registers(0x3F, 0x01))
+			DC_Voltage_PV1 = get_div_10(modbus.read_holding_registers(0x6D, 0x01))
+			DC_Voltage_PV2 = get_div_10(modbus.read_holding_registers(0x6F, 0x01))
+			DC_Voltage_PV3 = get_div_10(modbus.read_holding_registers(0x71, 0x01))
+			DC_Voltage_PV4 = get_div_10(modbus.read_holding_registers(0x73, 0x01))
 			DC_Current_PV1 = modbus.read_holding_registers(0x6E, 0x01)
-			DC_Voltage_PV2 = modbus.read_holding_registers(0x6F, 0x01)
 			DC_Current_PV2 = modbus.read_holding_registers(0x70, 0x01)
-			DC_Voltage_PV3 = modbus.read_holding_registers(0x71, 0x01)
 			DC_Current_PV3 = modbus.read_holding_registers(0x72, 0x01)
-			DC_Voltage_PV4 = modbus.read_holding_registers(0x73, 0x01)
 			DC_Current_PV4 = modbus.read_holding_registers(0x74, 0x01)
 			
 			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Current_power/", str(Current_power[0]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Yield_today/", str(Yield_today[0]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Total_yield/", str(Total_yield[0]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Temp/", str(Temp[0]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV1/", str(DC_Voltage_PV1[0]),qos=1)
+			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Error/","------",qos=1)
+			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Temp/", str(Temp),qos=1)
+			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Current_power/", str(Current_power),qos=1)
+			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Yield_today/", str(Yield_today),qos=1)
+			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Total_yield/", str(Total_yield),qos=1)
+			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Temp/", str(Temp),qos=1)
+			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV1/", str(DC_Voltage_PV1),qos=1)
+			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV2/", str(DC_Voltage_PV2),qos=1)
+			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV3/", str(DC_Voltage_PV3),qos=1)
+			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV4/", str(DC_Voltage_PV4),qos=1)
 			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Current_PV1/", str(DC_Current_PV1[0]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV2/", str(DC_Voltage_PV2[0]),qos=1)
 			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Current_PV2/", str(DC_Current_PV2[0]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV3/", str(DC_Voltage_PV3[0]),qos=1)
 			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Current_PV3/", str(DC_Current_PV3[0]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV4/", str(DC_Voltage_PV4[0]),qos=1)
 			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Current_PV4/", str(DC_Current_PV4[0]),qos=1)
 			
 			print("All fine, check your mqtt_client")
 			sleep(1)
+				
+			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
 			clientMQTT.disconnect()
 			
 		except Exception as e:
@@ -73,6 +77,17 @@ def main():
 			print(e)
 			sleep(1)
 			clientMQTT.disconnect()
+
+def get_div_10(divide):
+	divide = int(divide[0])
+	final = divide / 10
+	return final
+
+def get_div_100(divide):
+	divide = int(divide[0])
+	final = divide / 100
+	return final
+
 
 if __name__ == "__main__":
 	main()
