@@ -62,8 +62,6 @@ def main():
 			
 			print("All fine, check your mqtt_client")
 			sleep(1)
-				
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
 			clientMQTT.disconnect()
 			
 		except Exception as e:
