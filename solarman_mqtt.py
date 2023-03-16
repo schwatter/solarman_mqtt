@@ -28,7 +28,7 @@ def main():
 			
 			# here you can add register
 			# You can find some table here
-			# https://onedrive.live.com/view.aspx?resid=16A457D539B343A2!3421&ithint=file%2cxlsx&authkey=!ACea2L7tVWRMVaw
+			# https://github.com/schwatter/solarman_mqtt/blob/main/Deye_SUN600G3-230-EU_Register.xlsx
 			# thx to Triple S from https://www.photovoltaikforum.com/
 			
 			Temp = get_div_100(modbus.read_holding_registers(0x5A, 0x01))
