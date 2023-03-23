@@ -1,12 +1,19 @@
-"""            Read data with pysolarmanv5 and puplish it with mqtt                   """
-"""                                                                                   """
-"""                                     schwatter                                     """
+"""    Read data with pysolarmanv5 and puplish it with mqtt    """	
+
+__progname__    = "solarman_mqtt"
+__version__     = "0.3"
+__author__      = "schwatter"
+__date__        = "2023-03-21"                                  """
 
 
 from pysolarmanv5 import PySolarmanV5
 import paho.mqtt.client as mqtt
 from time import sleep
+import argparse, re
 
+parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__progname__)
+parser.add_argument('-apr',dest='apr_value',help='set power output (value from 1 to 100)', required=False)
+args = parser.parse_args()
 
 def main():
 
@@ -31,32 +38,56 @@ def main():
 			# https://github.com/schwatter/solarman_mqtt/blob/main/Deye_SUN600G3-230-EU_Register.xlsx
 			# thx to Triple S from https://www.photovoltaikforum.com/
 			
-			Temp = get_div_100(modbus.read_holding_registers(0x5A, 0x01))
-			Current_Power = get_div_10(modbus.read_holding_registers(0x56, 0x01))
-			Yield_Today = get_div_10(modbus.read_holding_registers(0x3C, 0x01))
-			Total_Yield = get_div_10(modbus.read_holding_registers(0x3F, 0x01))
-			DC_All = get_div_10_all(modbus.read_holding_registers(0x6D, 0x08))
+			if args.apr_value:
+				if not re.match("^([1-9][0-9]?|100)$", args.apr_value):
+					parser.print_help()
+					quit()
+	
+				else:
+					modbus.write_multiple_holding_registers(register_addr=40, values=[int(args.apr_value)])
+					print("Change Active_Power_Regulation")
+					sleep (2)
+					Active_Power_Regulation = modbus.read_holding_registers(register_addr=40, quantity=1)
+					sleep (1)
+					clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Active_Power_Regulation/", "".join(map(str, Active_Power_Regulation)),qos=1)
+					print("Active_Power_Regulation updated:", "".join(map(str, Active_Power_Regulation)), "%")
 			
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Error/","------",qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Temp/", str(Temp),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Current_Power/", str(Current_Power),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Yield_Today/", str(Yield_Today),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Total_Yield/", str(Total_Yield),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV1/", str(DC_All[0]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV2/", str(DC_All[2]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV3/", str(DC_All[4]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV4/", str(DC_All[6]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Current_PV1/", str(DC_All[1]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Current_PV2/", str(DC_All[3]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Current_PV3/", str(DC_All[5]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Current_PV4/", str(DC_All[7]),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Power_PV1/", str(round(DC_All[0] * DC_All[1], 1)),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Power_PV2/", str(round(DC_All[2] * DC_All[3], 1)),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Power_PV3/", str(round(DC_All[4] * DC_All[5], 1)),qos=1)
-			clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Power_PV4/", str(round(DC_All[6] * DC_All[7], 1)),qos=1)
+			else:
+				
+				print("Read register")
+				AC_Output_Frequency = get_div_100(modbus.read_holding_registers(register_addr=79, quantity=1))
+				Active_Power_Regulation = modbus.read_holding_registers(register_addr=40, quantity=1)
+				Temp = get_div_100(modbus.read_holding_registers(register_addr=90, quantity=1))
+				Current_power = get_div_10(modbus.read_holding_registers(register_addr=86, quantity=1))
+				Yield_today = get_div_10(modbus.read_holding_registers(register_addr=60, quantity=1))
+				Total_yield = get_div_10(modbus.read_holding_registers(register_addr=63, quantity=1))
+				DC_all = get_div_10_all(modbus.read_holding_registers(register_addr=109, quantity=8))
+				#Islanding_Protection = modbus.read_holding_registers(register_addr=46, quantity=1)
+
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Error/","------",qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Temp/", str(Temp),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Current_power/", str(Current_power),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Yield_today/", str(Yield_today),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Total_yield/", str(Total_yield),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/AC_Output_Frequency/", str(AC_Output_Frequency),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Active_Power_Regulation/", "".join(map(str, Active_Power_Regulation)),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV1/", str(DC_all[0]),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV2/", str(DC_all[2]),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV3/", str(DC_all[4]),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV4/", str(DC_all[6]),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Current_PV1/", str(DC_all[1]),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Current_PV2/", str(DC_all[3]),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Current_PV3/", str(DC_all[5]),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Current_PV4/", str(DC_all[7]),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Power_PV1/", str(round(DC_all[0] * DC_all[1], 1)),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Power_PV2/", str(round(DC_all[2] * DC_all[3], 1)),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Power_PV3/", str(round(DC_all[4] * DC_all[5], 1)),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Power_PV4/", str(round(DC_all[6] * DC_all[7], 1)),qos=1)
+				#clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Islanding_Protection/", "".join(map(str, Islanding_Protection)),qos=1)
+				
+				print("All fine, check your mqtt_client")
 			
-			print("All fine, check your mqtt_client")
 			sleep(1)
 			clientMQTT.disconnect()
 			
