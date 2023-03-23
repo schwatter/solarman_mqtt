@@ -32,5 +32,5 @@ usage: python3 solarman_mqtt.py
 
 ## Dependencies
 
-- [jmccrohan/pysolarmanv5](https://https://github.com/jmccrohan/pysolarmanv5)
+- [jmccrohan/pysolarmanv5](https://github.com/jmccrohan/pysolarmanv5)
 - [eclipse/paho.mqtt.python](https://github.com/eclipse/paho.mqtt.python)
