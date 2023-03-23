@@ -26,6 +26,8 @@ usage: python3 solarman_mqtt.py
   
 # History
 - 0.3 - Added Active_Power_Regulation
+- 0.2 - Added MQTT
+- 0.1 - Added Initial Setup
 
 ## Dependencies
 
