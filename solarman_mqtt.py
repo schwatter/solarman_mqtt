@@ -28,7 +28,7 @@ def main():
 
 	for i, (inverter_ip, inverter_sn, mqtt_inverter) in enumerate(zip(inverter_ip_list, inverter_sn_list, mqtt_inverter_name)):
 		try:	
-			modbus = PySolarmanV5(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=0x01, verbose=False)
+			modbus = PySolarmanV5(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False)
 			clientMQTT = mqtt.Client(mqtt_inverter)
 			clientMQTT.username_pw_set(mqtt_user, mqtt_pw)
 			clientMQTT.connect(mqtt_srv, mqtt_port)
