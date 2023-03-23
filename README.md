@@ -1,6 +1,7 @@
 # solarman_mqtt
 
-This example uses the pysolarmanv5 module to read data and publish it with mqtt.
+This example uses the pysolarmanv5 module to read registerdata and publish it with mqtt
+and can change the power output. See "Usage".
 
 
 ## Documentation
