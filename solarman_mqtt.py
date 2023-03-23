@@ -3,7 +3,7 @@
 __progname__    = "solarman_mqtt"
 __version__     = "0.3"
 __author__      = "schwatter"
-__date__        = "2023-03-21"                                  """
+__date__        = "2023-03-21"
 
 
 from pysolarmanv5 import PySolarmanV5
