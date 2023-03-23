@@ -17,7 +17,7 @@ usage: python3 solarman_mqtt.py [-h] -apr 100
 
 options:
   -h, --help      show this help message and exit
-  -apr APR_VALUE  set power output (value from 1 to 100
+  -apr APR_VALUE  set power output (value from 1 to 100)
  
 For reading only register, use no argument.
 usage: python3 solarman_mqtt.py
