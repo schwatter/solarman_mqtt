@@ -3,7 +3,7 @@
 __progname__    = "solarman_mqtt"
 __version__     = "0.3"
 __author__      = "schwatter"
-__date__        = "2023-03-21"
+__date__        = "2023-03-24"
 
 
 from pysolarmanv5 import PySolarmanV5
@@ -31,7 +31,6 @@ def main():
 			modbus = PySolarmanV5(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False)
 			clientMQTT = mqtt.Client(mqtt_inverter)
 			clientMQTT.username_pw_set(mqtt_user, mqtt_pw)
-			clientMQTT.connect(mqtt_srv, mqtt_port)
 			
 			# here you can add register
 			# You can find some table here
@@ -48,8 +47,11 @@ def main():
 					print("Change Active_Power_Regulation")
 					sleep (2)
 					Active_Power_Regulation = modbus.read_holding_registers(register_addr=40, quantity=1)
-					sleep (1)
+					clientMQTT.connect(mqtt_srv, mqtt_port)
+					clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
+					clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Error/","------",qos=1)
 					clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Active_Power_Regulation/", "".join(map(str, Active_Power_Regulation)),qos=1)
+					clientMQTT.disconnect()
 					print("Active_Power_Regulation updated:", "".join(map(str, Active_Power_Regulation)), "%")
 			
 			else:
@@ -57,13 +59,14 @@ def main():
 				print("Read register")
 				AC_Output_Frequency = get_div_100(modbus.read_holding_registers(register_addr=79, quantity=1))
 				Active_Power_Regulation = modbus.read_holding_registers(register_addr=40, quantity=1)
+				Islanding_Protection = modbus.read_holding_registers(register_addr=46, quantity=1)
 				Temp = get_div_100(modbus.read_holding_registers(register_addr=90, quantity=1))
 				Current_power = get_div_10(modbus.read_holding_registers(register_addr=86, quantity=1))
 				Yield_today = get_div_10(modbus.read_holding_registers(register_addr=60, quantity=1))
 				Total_yield = get_div_10(modbus.read_holding_registers(register_addr=63, quantity=1))
 				DC_all = get_div_10_all(modbus.read_holding_registers(register_addr=109, quantity=8))
-				#Islanding_Protection = modbus.read_holding_registers(register_addr=46, quantity=1)
-
+				
+				clientMQTT.connect(mqtt_srv, mqtt_port)
 				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
 				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Error/","------",qos=1)
 				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Temp/", str(Temp),qos=1)
@@ -72,6 +75,9 @@ def main():
 				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Total_yield/", str(Total_yield),qos=1)
 				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/AC_Output_Frequency/", str(AC_Output_Frequency),qos=1)
 				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Active_Power_Regulation/", "".join(map(str, Active_Power_Regulation)),qos=1)
+				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Islanding_Protection/", "".join(map(str, Islanding_Protection)),qos=1)
+				clientMQTT.disconnect()
+				clientMQTT.connect(mqtt_srv, mqtt_port)
 				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV1/", str(DC_all[0]),qos=1)
 				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV2/", str(DC_all[2]),qos=1)
 				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV3/", str(DC_all[4]),qos=1)
@@ -84,12 +90,8 @@ def main():
 				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Power_PV2/", str(round(DC_all[2] * DC_all[3], 1)),qos=1)
 				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Power_PV3/", str(round(DC_all[4] * DC_all[5], 1)),qos=1)
 				clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Power_PV4/", str(round(DC_all[6] * DC_all[7], 1)),qos=1)
-				#clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Islanding_Protection/", "".join(map(str, Islanding_Protection)),qos=1)
-				
+				clientMQTT.disconnect()
 				print("All fine, check your mqtt_client")
-			
-			sleep(1)
-			clientMQTT.disconnect()
 			
 		except Exception as e:
 			
