@@ -1,7 +1,7 @@
 # solarman_mqtt
 
 This example uses the pysolarmanv5 module to read registerdata and publish it with mqtt
-and can change the power output. See "Usage".
+It can also change the power output. See "Usage".
 
 
 ## Documentation
@@ -14,11 +14,12 @@ Tested with Deye_SUN1600G3-230-EU.
 
 ## Usage
 <pre><code>
-usage: python3 solarman_mqtt.py [-h] -apr 100
+usage: solarman_mqtt.py [-h] [-apr APR_VALUE] [-sr SINGLE_REGISTER]
 
 options:
   -h, --help      show this help message and exit
   -apr APR_VALUE  set power output (value from 1 to 100)
+  -sr SINGLE_REGISTER  read single register (value from 0 to 65535)
  
 For reading only register, use no argument.
 usage: python3 solarman_mqtt.py
@@ -26,6 +27,7 @@ usage: python3 solarman_mqtt.py
 
   
 ## History
+- 0.4 - Added Read Single Register
 - 0.3 - Added Active_Power_Regulation
 - 0.2 - Added MQTT
 - 0.1 - Initial Setup
