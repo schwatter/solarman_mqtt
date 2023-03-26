@@ -13,6 +13,7 @@ import argparse, re
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__progname__)
 parser.add_argument('-apr',dest='apr_value',help='set power output (value from 1 to 100)', required=False)
+parser.add_argument('-sr',dest='single_register',help='read single register (value from 0 to 65535)', required=False)
 args = parser.parse_args()
 
 def main():
@@ -43,8 +44,8 @@ def main():
 					quit()
 	
 				else:
-					modbus.write_multiple_holding_registers(register_addr=40, values=[int(args.apr_value)])
 					print("Change Active_Power_Regulation")
+					modbus.write_multiple_holding_registers(register_addr=40, values=[int(args.apr_value)])
 					sleep (2)
 					Active_Power_Regulation = modbus.read_holding_registers(register_addr=40, quantity=1)
 					clientMQTT.connect(mqtt_srv, mqtt_port)
@@ -53,6 +54,16 @@ def main():
 					clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Active_Power_Regulation/", "".join(map(str, Active_Power_Regulation)),qos=1)
 					clientMQTT.disconnect()
 					print("Active_Power_Regulation updated:", "".join(map(str, Active_Power_Regulation)), "%")
+					
+			elif args.single_register:
+				if not re.match("([0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])", args.single_register):
+					parser.print_help()
+					quit()
+	
+				else:
+					print("Read single register")
+					sr = modbus.read_holding_registers(register_addr=int(args.single_register), quantity=1)
+					print("Single register:", "".join(map(str, sr)))
 			
 			else:
 				
