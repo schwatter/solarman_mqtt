@@ -1,9 +1,9 @@
 """    Read data with pysolarmanv5 and puplish it with mqtt    """	
 
 __progname__    = "solarman_mqtt"
-__version__     = "0.3"
+__version__     = "0.4"
 __author__      = "schwatter"
-__date__        = "2023-03-24"
+__date__        = "2023-03-26"
 
 
 from pysolarmanv5 import PySolarmanV5
