@@ -1,6 +1,6 @@
 # solarman_mqtt
 
-This example uses the pysolarmanv5 module to read and write registerdata<br>
+This example uses the pysolarmanv5 module to read and write registerdata.<br>
 The hardcoded registers are for Deye Microinverters like:<br>
 SUN 300/500/600/800/1000/1300/1600/2000<br>
 
