@@ -1,7 +1,10 @@
 # solarman_mqtt
 
-This example uses the pysolarmanv5 module to read registerdata and publish it with mqtt
-It can also change the power output. See "Usage".
+This example uses the pysolarmanv5 module to read and write registerdata<br>
+The hardcoded registers are for Deye Microinverters like:<br>
+SUN 300/500/600/800/1000/1300/1600/2000<br>
+
+See "Usage"
 
 
 ## Documentation
@@ -14,12 +17,16 @@ Tested with Deye_SUN1600G3-230-EU.
 
 ## Usage
 <pre><code>
-usage: solarman_mqtt.py [-h] [-apr APR_VALUE] [-sr SINGLE_REGISTER]
+usage: solarman_mqtt.py [-h] [-apr APR_VALUE] [-dt] [-rsr RS_REGISTER] [-wsr Register Value]
+
+solarman_mqtt
 
 options:
-  -h, --help      show this help message and exit
-  -apr APR_VALUE  set power output (value from 1 to 100)
-  -sr SINGLE_REGISTER  read single register (value from 0 to 65535)
+  -h, --help           show this help message and exit
+  -apr APR_VALUE       write power output (value from 1 to 100)
+  -dt                  write date and time (reg 22,23,24)
+  -rsr RS_REGISTER     read single register (value from 0 to 65535)
+  -wsr Register Value  write single register (40 100) Caution !!!
  
 For reading only register, use no argument.
 usage: python3 solarman_mqtt.py
@@ -27,6 +34,7 @@ usage: python3 solarman_mqtt.py
 
   
 ## History
+- 0.5 - Added Write Single Register and Write Actual Time
 - 0.4 - Added Read Single Register
 - 0.3 - Added Active_Power_Regulation
 - 0.2 - Added MQTT
