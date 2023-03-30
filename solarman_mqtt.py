@@ -1,19 +1,22 @@
 """    Read data with pysolarmanv5 and puplish it with mqtt    """	
 
 __progname__    = "solarman_mqtt"
-__version__     = "0.4"
+__version__     = "0.5"
 __author__      = "schwatter"
-__date__        = "2023-03-26"
+__date__        = "2023-03-30"
 
 
 from pysolarmanv5 import PySolarmanV5
 import paho.mqtt.client as mqtt
+from datetime import datetime
 from time import sleep
 import argparse, re
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__progname__)
-parser.add_argument('-apr',dest='apr_value',help='set power output (value from 1 to 100)', required=False)
-parser.add_argument('-sr',dest='single_register',help='read single register (value from 0 to 65535)', required=False)
+parser.add_argument('-apr',dest='apr_value',help='write power output (value from 1 to 100)', required=False)
+parser.add_argument('-dt',action='store_true',help='write date and time (reg 22,23,24)', required=False)
+parser.add_argument('-rsr',dest='rs_register',help='read single register (value from 0 to 65535)', required=False)
+parser.add_argument('-wsr',dest='ws_register',nargs=2,metavar=('Register', 'Value'),type=int,default=[],help='write single register (40 100) Caution !!!', required=False)
 args = parser.parse_args()
 
 def main():
@@ -54,19 +57,35 @@ def main():
 					clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Active_Power_Regulation/", "".join(map(str, Active_Power_Regulation)),qos=1)
 					clientMQTT.disconnect()
 					print("Active_Power_Regulation updated:", "".join(map(str, Active_Power_Regulation)), "%")
+
+			elif args.dt:
+				print("Set time")
+				now = datetime.now()
+				ym = 256 * (now.year % 100) + now.month
+				modbus.write_multiple_holding_registers(register_addr=22, values=[int(ym)])
+				dh = 256 * now.day + now.hour
+				modbus.write_multiple_holding_registers(register_addr=23, values=[int(dh)])
+				ms = 256 * now.minute + now.second
+				modbus.write_multiple_holding_registers(register_addr=24, values=[int(ms)])
+				print("finished")
 					
-			elif args.single_register:
-				if not re.match("([0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])", args.single_register):
+			elif args.rs_register:
+				if not re.match("([0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])", args.rs_register):
 					parser.print_help()
 					quit()
 	
 				else:
 					print("Read single register")
-					sr = modbus.read_holding_registers(register_addr=int(args.single_register), quantity=1)
+					sr = modbus.read_holding_registers(register_addr=int(args.rs_register), quantity=1)
 					print("Single register:", "".join(map(str, sr)))
+					
+			elif args.ws_register:
+				print("write single register")
+				wsr = args.ws_register
+				modbus.write_multiple_holding_registers(register_addr=wsr[0], values=[wsr[1]])
+				print("finished:", wsr[0], "value:", wsr[1])
 			
 			else:
-				
 				print("Read register")
 				AC_Output_Frequency = get_div_100(modbus.read_holding_registers(register_addr=79, quantity=1))
 				Active_Power_Regulation = modbus.read_holding_registers(register_addr=40, quantity=1)
