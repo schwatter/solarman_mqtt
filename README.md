@@ -46,7 +46,7 @@ options:
 For reading only register, use no argument.
 usage: python3 solarman_mqtt.py
 
-For reading only register and push all to mqtt use.
+For reading only register and push all to mqtt.
 usage: python3 solarman_mqtt.py -mqtt
 
 So in sum, "-mqtt" can be combined with all flags and all output lands in the mqtt_client.
