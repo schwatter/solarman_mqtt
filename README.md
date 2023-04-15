@@ -55,7 +55,7 @@ If not set, all output lands on the local console.
 
   
 ## History
-- 0.6 - Added Mqtt as optional
+- 0.6 - Changed MQTT as optional
 - 0.5 - Added Write Single Register and Write Actual Time
 - 0.4 - Added Read Single Register
 - 0.3 - Added Active_Power_Regulation
