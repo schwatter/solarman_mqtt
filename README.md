@@ -19,14 +19,14 @@ Tested with Deye_SUN1600G3-230-EU.
 
 Setup your inverter details.
 <pre><code>
-	inverter_ip_list = ["your_first_ip", "your_second_ip", "your_third_ip"] # one ore more inverters
-	inverter_sn_list = [1234567890, 1234567890, 1234567890] # device serial number
-	inverterport = 8899 # standardport
-	mqtt_inverter_name = ["Deye1600_001", "Deye1600_002", "Deye1600_003"] # change if you want other friendly names
-	mqtt_user = "your_user" # mqtt_server username
-	mqtt_pw = "your_password" # mqtt_server password
-	mqtt_srv = "your_ip" # mqtt_server ip
-	mqtt_port = 1883 # mqtt_server port
+inverter_ip_list = ["your_first_ip", "your_second_ip", "your_third_ip"] # one ore more inverters
+inverter_sn_list = [1234567890, 1234567890, 1234567890] # device serial number
+inverterport = 8899 # standardport
+mqtt_inverter_name = ["Deye1600_001", "Deye1600_002", "Deye1600_003"] # change if you want other friendly names
+mqtt_user = "your_user" # mqtt_server username
+mqtt_pw = "your_password" # mqtt_server password
+mqtt_srv = "your_ip" # mqtt_server ip
+mqtt_port = 1883 # mqtt_server port
  </code></pre>
  
  User options
