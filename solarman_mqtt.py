@@ -9,7 +9,7 @@ __date__        = "2023-04-19"
 from pysolarmanv5 import PySolarmanV5
 import paho.mqtt.client as mqtt
 from datetime import datetime
-from time import sleep
+from time import sleep, time
 import argparse, re
 import os
 
@@ -54,7 +54,8 @@ def main():
 						print("Active_Power_Regulation updated:", "".join(map(str, Active_Power_Regulation)), "%")	
 			elif args.dt:
 				print("Set time")
-				while True:
+				l_end = time() + 7200
+				while time() < l_end:
 					x = os.system("ping " + inverter_ip +  " -c 1 2>&1 >/dev/null")
 					if x == 256:
 						if args.mqtt:
@@ -63,7 +64,7 @@ def main():
 							clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Error/","inverter_not_online",qos=1)
 							clientMQTT.disconnect()
 						else:
-							print("Server " + inverter_ip + " is down, loop every 5min till it's up")
+							print("Server " + inverter_ip + " is down. Loop every 5min for 2hours till it's up")
 						sleep(300)
 					else:
 						if x == 0:
