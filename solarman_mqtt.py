@@ -1,9 +1,9 @@
 """    Read data with pysolarmanv5 and puplish it with mqtt    """	
 
 __progname__    = "solarman_mqtt"
-__version__     = "0.7"
+__version__     = "0.8"
 __author__      = "schwatter"
-__date__        = "2023-04-19"
+__date__        = "2023-04-23"
 
 
 from pysolarmanv5 import PySolarmanV5
@@ -162,28 +162,37 @@ def main():
 					clientMQTT.disconnect()
 					print("All fine, check your mqtt_client")
 				else:
-					print("Inverter: ", str(mqtt_inverter))
-					print("Temp: ", str(Temp))
-					print("Current_power: ", str(Current_power))
-					print("Yield_today: ", str(Yield_today))
-					print("Total_yield: ", str(Total_yield))
-					print("AC_Output_Frequency: ", str(AC_Output_Frequency))
-					print("Active_Power_Regulation: ", "".join(map(str, Active_Power_Regulation)))
-					print("Islanding_Protection: ", "".join(map(str, Islanding_Protection)))
-					print("Running_Status: ", str(Running_Status))
-					print("DC_Voltage_PV1: ", str(DC_all[0]))
-					print("DC_Voltage_PV2: ", str(DC_all[2]))
-					print("DC_Voltage_PV3: ", str(DC_all[4]))
-					print("DC_Voltage_PV4: ", str(DC_all[6]))
-					print("DC_Current_PV1: ", str(DC_all[1]))
-					print("DC_Current_PV2: ", str(DC_all[3]))
-					print("DC_Current_PV3: ", str(DC_all[5]))
-					print("DC_Current_PV4: ", str(DC_all[7]))
-					print("DC_Power_PV1: ", str(round(DC_all[0] * DC_all[1], 1)))
-					print("DC_Power_PV2: ", str(round(DC_all[2] * DC_all[3], 1)))
-					print("DC_Power_PV3: ", str(round(DC_all[4] * DC_all[5], 1)))
-					print("DC_Power_PV4: ", str(round(DC_all[6] * DC_all[7], 1)))
-					print("------------------------------")
+					i = str(mqtt_inverter)
+					t = str(Temp) + " °C"
+					cp = str(Current_power) + " W"
+					yt = str(Yield_today) + " kWh"
+					ty = str(Total_yield) + " kWh"
+					acaf = str(AC_Output_Frequency) + " Hz"
+					apr =  "".join(map(str, Active_Power_Regulation)) + " %"
+					ip = "".join(map(str, Islanding_Protection))
+					rs = str(Running_Status)
+					dc_v_p1 = str(DC_all[0]) + " V"
+					dc_v_p2 = str(DC_all[2]) + " V"
+					dc_v_p3 = str(DC_all[4]) + " V"
+					dc_v_p4 = str(DC_all[6]) + " V"
+					dc_c_p1 = str(DC_all[1]) + " A"
+					dc_c_p2 = str(DC_all[3]) + " A"
+					dc_c_p3 = str(DC_all[5]) + " A"
+					dc_c_p4 = str(DC_all[7]) + " A"
+					dc_p_p1 = str(round(DC_all[0] * DC_all[1], 1)) + " W"
+					dc_p_p2 = str(round(DC_all[2] * DC_all[3], 1)) + " W"
+					dc_p_p3 = str(round(DC_all[4] * DC_all[5], 1)) + " W"
+					dc_p_p4 = str(round(DC_all[6] * DC_all[7], 1)) + " W"
+					empty = "-------------------------"
+					table_1 = [["Inverter", i], ["Temp", t], ["Current_power", cp], ["Yield_today", yt], ["Total_yield", ty], ["AC_Output_Frequency", acaf]]
+					table_2 = [["Active_Power_Regulation", apr], ["Islanding_Protection", ip], ["Running_Status", rs]]
+					table_3 = [["DC_Voltage_PV1", dc_v_p1], ["DC_Current_PV1", dc_c_p1], ["DC_Power_PV1", dc_p_p1]]
+					table_4 = [["DC_Voltage_PV2", dc_v_p2], ["DC_Current_PV2", dc_c_p2], ["DC_Power_PV2", dc_p_p2]]
+					table_5 = [["DC_Voltage_PV3", dc_v_p3], ["DC_Current_PV3", dc_c_p3], ["DC_Power_PV3", dc_p_p3]]
+					table_6 = [["DC_Voltage_PV4", dc_v_p4], ["DC_Current_PV4", dc_c_p4], ["DC_Power_PV4", dc_p_p4], [empty, empty]]
+					table = table_1 + table_2 + table_3 + table_4 + table_5 + table_6
+					for row in table:
+						print('{:25} : {:25} '.format(*row))
 			
 		except Exception as e:
 			if args.mqtt:			
@@ -215,18 +224,21 @@ def get_status(status):
 	if status == [0]:
 		stand_by = "Stand-by"
 		return stand_by
-	if status == [1]:
+	elif status == [1]:
 		self_check = "Self-check"
 		return self_check
-	if status == [2]:
+	elif status == [2]:
 		normal = "Normal"
 		return normal
-	if status == [3]:
+	elif status == [3]:
 		warning = "Warning"
 		return warning
-	if status == [4]:
+	elif status == [4]:
 		fault = "Fault"
 		return fault
+	else:
+		error = "Error"
+		return error
 
 if __name__ == "__main__":
 	main()
