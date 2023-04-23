@@ -127,6 +127,7 @@ def main():
 				AC_Output_Frequency = get_div_100(modbus.read_holding_registers(register_addr=79, quantity=1))
 				Active_Power_Regulation = modbus.read_holding_registers(register_addr=40, quantity=1)
 				Islanding_Protection = modbus.read_holding_registers(register_addr=46, quantity=1)
+				Running_Status = get_status(modbus.read_holding_registers(register_addr=59, quantity=1))
 				Temp = get_div_100(modbus.read_holding_registers(register_addr=90, quantity=1))
 				Current_power = get_div_10(modbus.read_holding_registers(register_addr=86, quantity=1))
 				Yield_today = get_div_10(modbus.read_holding_registers(register_addr=60, quantity=1))
@@ -143,6 +144,7 @@ def main():
 					clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/AC_Output_Frequency/", str(AC_Output_Frequency),qos=1)
 					clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Active_Power_Regulation/", "".join(map(str, Active_Power_Regulation)),qos=1)
 					clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Islanding_Protection/", "".join(map(str, Islanding_Protection)),qos=1)
+					clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Running_Status/", str(Running_Status),qos=1)
 					clientMQTT.disconnect()
 					clientMQTT.connect(mqtt_srv, mqtt_port)
 					clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/DC_Voltage_PV1/", str(DC_all[0]),qos=1)
@@ -168,6 +170,7 @@ def main():
 					print("AC_Output_Frequency: ", str(AC_Output_Frequency))
 					print("Active_Power_Regulation: ", "".join(map(str, Active_Power_Regulation)))
 					print("Islanding_Protection: ", "".join(map(str, Islanding_Protection)))
+					print("Running_Status: ", str(Running_Status))
 					print("DC_Voltage_PV1: ", str(DC_all[0]))
 					print("DC_Voltage_PV2: ", str(DC_all[2]))
 					print("DC_Voltage_PV3: ", str(DC_all[4]))
@@ -208,6 +211,22 @@ def get_div_100(divide):
 	final = divide / 100
 	return final
 
+def get_status(status):
+	if status == [0]:
+		stand_by = "Stand-by"
+		return stand_by
+	if status == [1]:
+		self_check = "Self-check"
+		return self_check
+	if status == [2]:
+		normal = "Normal"
+		return normal
+	if status == [3]:
+		warning = "Warning"
+		return warning
+	if status == [4]:
+		fault = "Fault"
+		return fault
 
 if __name__ == "__main__":
 	main()
