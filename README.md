@@ -55,6 +55,7 @@ If not set, all output lands on the local console.
 
   
 ## History
+- 0.8 - Added Running_Status
 - 0.7 - Added every5min loop with ping to -dt. Best start script @sunrise.
 - 0.6 - Changed MQTT as optional
 - 0.5 - Added Write Single Register and Write Actual Time
