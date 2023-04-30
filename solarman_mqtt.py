@@ -1,9 +1,9 @@
 """    Read data with pysolarmanv5 and puplish it with mqtt    """	
 
 __progname__    = "solarman_mqtt"
-__version__     = "0.8"
+__version__     = "0.9"
 __author__      = "schwatter"
-__date__        = "2023-04-23"
+__date__        = "2023-04-30"
 
 
 from pysolarmanv5 import PySolarmanV5
@@ -71,6 +71,7 @@ def main():
 							print("Inverter " + inverter_ip + " is up")
 							modbus = PySolarmanV5(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False)
 							now = datetime.now()
+							ct = now.strftime("%H:%M")
 							ym = 256 * (now.year % 100) + now.month
 							modbus.write_multiple_holding_registers(register_addr=22, values=[int(ym)])
 							dh = 256 * now.day + now.hour
@@ -82,9 +83,10 @@ def main():
 								clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
 								clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Error/","------",qos=1)
 								clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/Actual_DateTime/", "22=" + str(ym) + "/23="+ str(dh) + "/24=" + str(ms),qos=1)
+								clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/WakeUpTime/", str(ct),qos=1)
 								clientMQTT.disconnect()
 							else:
-								print("Time updated")
+								print("Time updated @ " + ct)
 							break
 			elif args.rs_register:
 				if not re.match("^(?:0|[1-9]\d{0,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$", args.rs_register):
@@ -184,13 +186,12 @@ def main():
 					dc_p_p3 = str(round(DC_all[4] * DC_all[5], 1)) + " W"
 					dc_p_p4 = str(round(DC_all[6] * DC_all[7], 1)) + " W"
 					empty = "-------------------------"
-					table_1 = [["Inverter", i], ["Temp", t], ["Current_power", cp], ["Yield_today", yt], ["Total_yield", ty], ["AC_Output_Frequency", acaf]]
-					table_2 = [["Active_Power_Regulation", apr], ["Islanding_Protection", ip], ["Running_Status", rs]]
-					table_3 = [["DC_Voltage_PV1", dc_v_p1], ["DC_Current_PV1", dc_c_p1], ["DC_Power_PV1", dc_p_p1]]
-					table_4 = [["DC_Voltage_PV2", dc_v_p2], ["DC_Current_PV2", dc_c_p2], ["DC_Power_PV2", dc_p_p2]]
-					table_5 = [["DC_Voltage_PV3", dc_v_p3], ["DC_Current_PV3", dc_c_p3], ["DC_Power_PV3", dc_p_p3]]
-					table_6 = [["DC_Voltage_PV4", dc_v_p4], ["DC_Current_PV4", dc_c_p4], ["DC_Power_PV4", dc_p_p4], [empty, empty]]
-					table = table_1 + table_2 + table_3 + table_4 + table_5 + table_6
+					table = [["Inverter", i], ["Temp", t], ["Current_power", cp], ["Yield_today", yt], ["Total_yield", ty], ["AC_Output_Frequency", acaf],
+					["Active_Power_Regulation", apr], ["Islanding_Protection", ip], ["Running_Status", rs],
+					["DC_Voltage_PV1", dc_v_p1], ["DC_Current_PV1", dc_c_p1], ["DC_Power_PV1", dc_p_p1],
+					["DC_Voltage_PV2", dc_v_p2], ["DC_Current_PV2", dc_c_p2], ["DC_Power_PV2", dc_p_p2],
+					["DC_Voltage_PV3", dc_v_p3], ["DC_Current_PV3", dc_c_p3], ["DC_Power_PV3", dc_p_p3],
+					["DC_Voltage_PV4", dc_v_p4], ["DC_Current_PV4", dc_c_p4], ["DC_Power_PV4", dc_p_p4], [empty, empty]]
 					for row in table:
 						print('{:25} : {:25} '.format(*row))
 			
