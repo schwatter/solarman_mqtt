@@ -1,16 +1,17 @@
 """    Read data with pysolarmanv5 and puplish it with mqtt    """	
 
 __progname__    = "solarman_mqtt"
-__version__     = "0.9"
+__version__     = "1.0"
 __author__      = "schwatter"
 __date__        = "2023-04-30"
 
 
-from pysolarmanv5 import PySolarmanV5
+from pysolarmanv5 import PySolarmanV5Async
 import paho.mqtt.client as mqtt
 from datetime import datetime
 from time import sleep, time
 import argparse, re
+import asyncio
 import os
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__progname__)
@@ -21,7 +22,7 @@ parser.add_argument('-rsr',dest='rs_register',help='read single register (value 
 parser.add_argument('-wsr',dest='ws_register',nargs=2,metavar=('Register', 'Value'),type=int,default=[],help='write single register (40 100) Caution !!!', required=False)
 args = parser.parse_args()
 
-def main():
+async def main():
 	inverter_ip_list = ["your_first_ip", "your_second_ip", "your_third_ip"] # one ore more inverters
 	inverter_sn_list = [1234567890, 1234567890, 1234567890] # device serial number
 	inverterport = 8899 # standardport
@@ -40,10 +41,11 @@ def main():
 					quit()
 				else:
 					print("Change Active_Power_Regulation")
-					modbus = PySolarmanV5(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False)
-					modbus.write_multiple_holding_registers(register_addr=40, values=[int(args.apr_value)])
+					modbus = PySolarmanV5Async(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False, auto_reconnect=True)
+					await modbus.connect()
+					await modbus.write_multiple_holding_registers(register_addr=40, values=[int(args.apr_value)])
 					sleep (2)
-					Active_Power_Regulation = modbus.read_holding_registers(register_addr=40, quantity=1)
+					Active_Power_Regulation = await modbus.read_holding_registers(register_addr=40, quantity=1)
 					if args.mqtt:
 						clientMQTT.connect(mqtt_srv, mqtt_port)
 						clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
@@ -69,15 +71,16 @@ def main():
 					else:
 						if x == 0:
 							print("Inverter " + inverter_ip + " is up")
-							modbus = PySolarmanV5(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False)
+							modbus = PySolarmanV5Async(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False, auto_reconnect=True)
+							await modbus.connect()
 							now = datetime.now()
 							ct = now.strftime("%H:%M")
 							ym = 256 * (now.year % 100) + now.month
-							modbus.write_multiple_holding_registers(register_addr=22, values=[int(ym)])
+							await modbus.write_multiple_holding_registers(register_addr=22, values=[int(ym)])
 							dh = 256 * now.day + now.hour
-							modbus.write_multiple_holding_registers(register_addr=23, values=[int(dh)])
+							await modbus.write_multiple_holding_registers(register_addr=23, values=[int(dh)])
 							ms = 256 * now.minute + now.second
-							modbus.write_multiple_holding_registers(register_addr=24, values=[int(ms)])
+							await modbus.write_multiple_holding_registers(register_addr=24, values=[int(ms)])
 							if args.mqtt:
 								clientMQTT.connect(mqtt_srv, mqtt_port)
 								clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
@@ -94,8 +97,9 @@ def main():
 					quit()
 				else:
 					print("Read single register")
-					modbus = PySolarmanV5(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False)
-					sr = modbus.read_holding_registers(register_addr=int(args.rs_register), quantity=1)
+					modbus = PySolarmanV5Async(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False, auto_reconnect=True)
+					await modbus.connect()
+					sr = await modbus.read_holding_registers(register_addr=int(args.rs_register), quantity=1)
 					if args.mqtt:
 						clientMQTT.connect(mqtt_srv, mqtt_port)
 						clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
@@ -108,8 +112,9 @@ def main():
 			elif args.ws_register:
 				print("Write single register")
 				wsr = args.ws_register
-				modbus = PySolarmanV5(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False)
-				modbus.write_multiple_holding_registers(register_addr=wsr[0], values=[wsr[1]])
+				modbus = PySolarmanV5Async(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False, auto_reconnect=True)
+				await modbus.connect()
+				await modbus.write_multiple_holding_registers(register_addr=wsr[0], values=[wsr[1]])
 				if args.mqtt:
 						clientMQTT.connect(mqtt_srv, mqtt_port)
 						clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
@@ -125,16 +130,17 @@ def main():
 				# https://github.com/schwatter/solarman_mqtt/blob/main/Deye_SUN600G3-230-EU_Register.xlsx
 				
 				print("Read register")
-				modbus = PySolarmanV5(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False)
-				AC_Output_Frequency = get_div_100(modbus.read_holding_registers(register_addr=79, quantity=1))
-				Active_Power_Regulation = modbus.read_holding_registers(register_addr=40, quantity=1)
-				Islanding_Protection = modbus.read_holding_registers(register_addr=46, quantity=1)
-				Running_Status = get_status(modbus.read_holding_registers(register_addr=59, quantity=1))
-				Temp = get_div_100(modbus.read_holding_registers(register_addr=90, quantity=1))
-				Current_power = get_div_10(modbus.read_holding_registers(register_addr=86, quantity=1))
-				Yield_today = get_div_10(modbus.read_holding_registers(register_addr=60, quantity=1))
-				Total_yield = get_div_10(modbus.read_holding_registers(register_addr=63, quantity=1))
-				DC_all = get_div_10_all(modbus.read_holding_registers(register_addr=109, quantity=8))
+				modbus = PySolarmanV5Async(inverter_ip, inverter_sn, port=inverterport, mb_slave_id=1, verbose=False, auto_reconnect=True)
+				await modbus.connect()
+				AC_Output_Frequency = get_div_100(await modbus.read_holding_registers(register_addr=79, quantity=1))
+				Active_Power_Regulation = await modbus.read_holding_registers(register_addr=40, quantity=1)
+				Islanding_Protection = await modbus.read_holding_registers(register_addr=46, quantity=1)
+				Running_Status = get_status(await modbus.read_holding_registers(register_addr=59, quantity=1))
+				Temp = get_div_100(await modbus.read_holding_registers(register_addr=90, quantity=1))
+				Current_power = get_div_10(await modbus.read_holding_registers(register_addr=86, quantity=1))
+				Yield_today = get_div_10(await modbus.read_holding_registers(register_addr=60, quantity=1))
+				Total_yield = get_div_10(await modbus.read_holding_registers(register_addr=63, quantity=1))
+				DC_all = get_div_10_all(await modbus.read_holding_registers(register_addr=109, quantity=8))
 				if args.mqtt:
 					clientMQTT.connect(mqtt_srv, mqtt_port)
 					clientMQTT.publish("deye/inverter/"+mqtt_inverter+"/state/","online",qos=1)
@@ -242,4 +248,4 @@ def get_status(status):
 		return error
 
 if __name__ == "__main__":
-	main()
+    asyncio.run(main())

@@ -55,6 +55,7 @@ If not set, all output lands on the local console.
 
   
 ## History
+- 1.0 - Switched to asyncio. Since this version PySolarmanV5Async is necessary.
 - 0.9 - Added WakeUpTime topic.
 - 0.8 - Added Running_Status
 - 0.7 - Added every5min loop with ping to -dt. Best start script @sunrise.
